@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/JoeyDrew/rss-snail/internal"
+
 	"github.com/mmcdole/gofeed"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -33,9 +35,19 @@ func main() {
 	defer func(logger *zap.Logger) {
 		err := logger.Sync()
 		if err != nil {
-			logger.Fatal("couldn't close logger", zap.Error(err))
+			logger.Error("couldn't close logger", zap.Error(err))
 		}
 	}(logger)
+
+	s, err := internal.NewSqliteDao("identifier.sqlite")
+	if err != nil {
+		logger.Fatal("cant provision", zap.Error(err))
+	}
+	if s != nil {
+		defer s.Close()
+	}
+
+	return
 
 	var feed = NewFeed(logger)
 	if feed == nil {
